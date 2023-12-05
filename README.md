@@ -531,11 +531,197 @@ root@VM2:~# systemctl restart apache2
 
 ### 2. Mail Server
 
-### A. Instalasi dan Konfigurasi Postfix dan Dovecot
+### A. Instalasi dan Konfigurasi Postfix
+**Langkah 1: Install Postfix**
+```
+apt -y install postfix sasl12-bin
+```
+```
+# Pada contoh disini, pilih [No Configuration]
+# Dikarenakan kita akan mengonfigurasinya secara Manual
+
++------+ Postfix Configuration +-------+
+| General type of mail configuration:  |
+|                                      |
+|       No configuration               |
+|       Internet Site                  |
+|       Internet with smarthost        |
+|       Satellite system               |
+|       Local only                     |
+|                                      |
+|                                      |
+|       <Ok>           <Cancel>        |
+|                                      |
++--------------------------------------+
+```
+**Langkah 2: Backup file main.cf**
+*Dikarenakan kita akan mengubah file main.cf, jadi ada baiknya dibackup dulu supaya jika terjadi kesalahan kita bisa membalikannya*
+```
+cp /usr/share/postfix/main.cf.dist /etc/postfix/main.cf
+```
+**Langkah 3: Konfigurasi Main.cf**
+```
+nano /etc/postfix/main.cf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Penjelasan: "Uncomment" artinya menghilangkan tanda pagar, sedangkan "Comment out" adalah sebaliknya
+# Baris 82 : uncomment
+mail_owner = postfix
+
+# Baris 98 : uncomment dan berikan hostname
+myhostname = mail.projectman.my.id
+
+# Baris 106 : uncomment dan berikan domainname
+mydomain = projectman.my.id
+
+# Baris 127 : uncomment
+myorigin = $mydomain
+
+# Baris 141 : uncomment
+inet_interfaces = all
+
+# Baris 189 : uncomment
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+# Baris 232 : uncomment
+local_recipient_maps = unix:passwd.byname $alias_maps
+
+# Baris 277 : uncomment
+mynetworks_style = subnet
+
+# Baris 294 : Tambahkan Jaringan Lokalmu
+mynetworks = 127.0.0.0/8, 192.168.20.2/24
+
+# Baris 416 : uncomment
+alias_maps = hash:/etc/aliases
+
+# Baris 427 : uncomment
+alias_database = hash:/etc/aliases
+
+# Baris 449 : uncomment
+home_mailbox = Maildir/
+
+# Baris 585: comment out dan tambahkan baris kode dibawah
+#smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+smtpd_banner = $myhostname ESMTP
+
+# Baris 659 : Tambahkan
+sendmail_path = /usr/sbin/postfix
+
+# Baris 664 : Tambahkan
+newaliases_path = /usr/bin/newaliases
+
+# Baris 669 : Tambahkan
+mailq_path = /usr/bin/mailq
+
+# Baris 675 : Tambahkan
+setgid_group = postdrop
+
+# Baris 679 : comment out
+#html_directory =
+
+# Baris 683 : comment out
+#manpage_directory =
+
+# Baris 688 : comment out
+#sample_directory =
+
+# Baris 692 : comment out
+#readme_directory =
+
+# Baris 692 : Jika IPv6 dipakai, ganti ke [all], tapi pada kasus ini saya tidak menggunakan IPv6
+inet_protocols = ipv4
+
+# Tambahkan kode dibawah ini di baris paling akhir
+# disable SMTP VRFY command
+disable_vrfy_command = yes
+
+# require HELO command to sender hosts
+smtpd_helo_required = yes
+
+# Batasi ukuran Email
+# Contoh dibawah adalah batas 10M bytes
+message_size_limit = 10240000
+
+# SMTP-Auth settings
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+smtpd_recipient_restrictions = permit_mynetworks, permit_auth_destination, permit_sasl_authenticated, reject
+```
+**Langkah 4: Restart Layanan Postfix**
+```
+newaliases
+```
+```
+systemctl restart postfix
+```
+#### B. Instalasi dan Konfigurasi Dovecot
+**Langkah 1: Install Dovecot**
+```
+apt -y install-core dovecot-pop3d dovecot-imapd
+```
+
+**Langkah 2: Konfigurasi file dovecot.conf**
+```
+nano /etc/dovecot/dovecot.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 30 : uncomment
+listen = *, ::
+```
+
+**Langkah 3: Konfigurasi file 10-auth.conf**
+```
+nano /etc/dovecot/conf.d/10-auth.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 10 : uncomment dan ubah (allow plain text auth)
+disable_plaintext_auth = no
+
+# Baris 100 : Tambahkan
+auth_mechanisms = plain login
+```
+
+**Langkah 4: Konfigurasi file 10-mail.conf**
+```
+nano /etc/dovecot/conf.d/10-mail.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 30 : Ubah ke Maildir
+mail_location = maildir:~/Maildir
+```
+
+**Langkah 5: Konfigurasi file 10-master.conf**
+```
+nano /etc/dovecot/conf.d/10-master.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 107-109 : uncomment dan tambahkan
+  # Postfix smtp-auth
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+    user = postfix
+    group = postfix
+  }
+```
+
+**Langkah 6: Restart layanan Dovecot**
+```
+systemctl restart dovecot
+```
 
 ### B. Konfigurasi Webmail Roundcube
 
 ### C. Mengamankan Roundcube secara Umum
+
 Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
 yang direkomendasikan dari pihak roundcube
 
@@ -778,96 +964,165 @@ read R BLOCK
 220 mail.projectman.my.id ESMTP
 ```
 
-### 3. Database Server
+### L. Database Server
 
 ### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
-### N. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
-
-**Langkah 1: Membuka direktori utama Mariadb**
+### 5. DNS Server
+### A. Instalasi dan Konfigurasi BIND (Berkeley Internet Name Domain)
+**Langkah 1: Instalasi BIND**
 ```
-nano /etc/mysql/mariadb.cnf
-```
-**Langkah 2: Mengedit Konfigurasi**
-```
-#
-# If the same option is defined multiple times, the last one will apply.
-#
-# One can use all long options that the program supports.
-# Run program with --help to get a list of available options and with
-# --print-defaults to see which it would actually understand and use.
-#
-# If you are new to MariaDB, check out https://mariadb.com/kb/en/basic-mariadb-articles/
-
-#
-# This group is read both by the client and the server
-# use it for options that affect everything
-#
-[client-server]
-# Port or socket location where to connect
-#port = 3306
-socket = /run/mysqld/mysqld.sock
-
-[mysqld]
-bind-address = 127.0.0.1
-port = 3306
-log-bin
-# Import all .cnf files from configuration directory
-!includedir /etc/mysql/conf.d/
-!includedir /etc/mysql/mariadb.conf.d/
-```
-ini akan membuat database server hanya bisa diakses dari localhost
-
-**Langkah 3: Restart**
-```
-systemctl restart mysqld mariadb.service
+apt -y install bind9 bind9utils
 ```
 
-**Langkah 4: Buka Konfigurasi .htmaccess phpmyadmin**
+**Langkah 2: Copy file untuk Konfigurasi "Forward" dan "Reverse"**
 ```
-nano /etc/apache2/conf-available/phpmyadmin.conf
-```
-**Langkah 5: Edit Konfigurasi ini**
-```
-# phpMyAdmin default Apache configuration
+cd /etc/bind
+root@VM2:/etc/bind# ls
 
-Alias /phpmyadmin /usr/share/phpmyadmin
-
-<Directory /usr/share/phpmyadmin>
-    Options SymLinksIfOwnerMatch
-    DirectoryIndex index.php
-
-    # limit libapache2-mod-php to files and directories necessary by pma
-    <IfModule mod_php7.c>
-        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
-        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
-    </IfModule>
-
-    # PHP 8+
-    <IfModule mod_php.c>
-        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
-        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
-    </IfModule>
-
-        Require ip 20.10.20.0/24
-</Directory>
-
-# Disallow web access to directories that don't need it
-<Directory /usr/share/phpmyadmin/templates>
-    Require all denied
-</Directory>
-<Directory /usr/share/phpmyadmin/libraries>
-    Require all denied
-</Directory>
+bind.keys  db.127  db.empty  named.conf                named.conf.local    rndc.key
+db.0       db.255  db.local  named.conf.default-zones  named.conf.options  zones.rfc1918
+cp db.local db.forward
+cp db.127 db.reverse
 ```
-**Langkah 6: Reload**
+**Langkah 3: Konfigurasi file db.forward**
 ```
-systemctl reload apache2
+nano db.forward
 ```
-**Langkah 7: Block akses ke port 3306 dari luar**
+**Ubahlah Konfigurasi seperti dibawah ini:**
 ```
-ufw deny 3306
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     projectman.my.id. root.projectman.my.id. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      projectman.my.id.
+@       IN      A       192.168.20.2
+ns      IN      A       192.168.20.2
+www     IN      A       192.168.20.2
+mail    IN      A       192.168.20.2
+@       IN      MX      10 mail.projectman.my.id.
 ```
 
+**Langkah 4: Konfigurasi file db.reverse**
+```
+nano db.reverse
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     projectman.my.id. root.projectman.my.id. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      projectman.my.id.
+10      IN      PTR     projectman.my.id.
+```
+
+**Langkah 5: Buka Konfigurasi named.conf.local untuk konfigurasi DNS Zones**
+```
+nano named.conf.local
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "projectman.my.id" {
+        type master;
+        file "/etc/bind/db.forward";
+};
+zone "20.168.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/db.reverse";
+};
+```
+
+**Langkah 6: Konfigurasi Forwarders**
+```
+nano named.conf.options
+```
+**Tambahkan DNS Forwarders**
+```
+options {
+        directory "/var/cache/bind";
+
+        // If there is a firewall between you and nameservers you want
+        // to talk to, you may need to fix the firewall to allow multiple
+        // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
+
+        // If your ISP provided one or more IP addresses for stable
+        // nameservers, you probably want to use them as forwarders.
+        // Uncomment the following block, and insert the addresses replacing
+        // the all-0's placeholder.
+
+        // forwarders {
+        //      192.168.20.2;
+        //      8.8.8.8;
+        // };
+
+        //========================================================================
+        // If BIND logs error messages about the root key being expired,
+        // you will need to update your keys.  See https://www.isc.org/bind-keys
+        //========================================================================
+        dnssec-validation auto;
+
+        listen-on-v6 { any; };
+};
+```
+
+**Langkah 7: Konfigurasi DNS diperangkat Server**
+```
+nano /etc/resolv.conf
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+domain projectman.my.id
+search projectman.my.id
+nameserver 192.168.20.2
+nameserver 8.8.8.8
+```
+**Langkah 8: Restart Layanan BIND9**
+```
+systemctl restart bind9
+```
+
+#### B. Pengetesan Konfigurasi DNS
+**Langkah 1: Instalasi DNS Resolver**
+```
+apt-get install dnsutils
+```
+
+**Langkah 2: Test DNS**
+```
+root@VM2:/etc/bind# nslookup projectman.my.id
+Server:         192.168.20.2
+Address:        192.168.20.2#53
+
+Name:   projectman.my.id
+Address: 192.168.20.2
+
+root@VM2:/etc/bind# nslookup 192.168.20.2
+2.20.168.192.in-addr.arpa     name = projectman.my.id.
+```
+
+**Coba disisi client**
+![7](https://github.com/Quetzalcoatlos23/Final-Project-SPJ-22.83.0833/assets/114808262/3397034c-3aec-4ab5-a6a3-91b65c65a65a)
 
 
