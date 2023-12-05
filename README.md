@@ -964,7 +964,7 @@ read R BLOCK
 220 mail.projectman.my.id ESMTP
 ```
 
-### L. Database Server
+### 3. Database Server
 
 ### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
@@ -1054,6 +1054,279 @@ systemctl reload apache2
 **Langkah 7: Block akses ke port 3306 dari luar**
 ```
 ufw deny 3306
+```
+
+### 4. Instalasi dan Konfigurasi OPENVPN
+
+**Langkah 1: Instalasi paket Openvpn & iptables**
+```
+apt-get install -y openvpn easy-rsa iptables
+```
+**Langkah 2: Buka direktori easyrsa**
+```
+cd /usr/share/easy-rsa
+```
+**Langkah 3: Membuat file PKI**
+```
+./easyrsa init-pki
+```
+**Langkah 4: Membuat CA**
+```
+./easyrsa build-ca
+
+* Notice:
+Using Easy-RSA configuration from: /usr/share/easy-rsa/pki/vars
+
+* Notice:
+Using SSL: openssl OpenSSL 3.0.11 19 Sep 2023 (Library: OpenSSL 3.0.11 19 Sep 2023)
+
+
+Enter New CA Key Passphrase:
+Re-Enter New CA Key Passphrase:
+Using configuration from /usr/share/easy-rsa/pki/93c96b9d/temp.9d426c95
+.+.........+.........+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....+...................+..+.+..................+.........+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+.....+.......+...+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+...+..+.+........+.......+...+.........+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+...+...............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+...+............+......+.......+..+...+...............+..........+.....+..........+..+..........+..+....+......+...+......+.....+......+.+...+......+..............+......+.........+.+.....................+.....+....+...+.....+.+.....+.......+..+......................+.....+...............+.+........+....+......+.....+......+......+....+.........+..............+...+....+........+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Common Name (eg: your user, host, or server name) [Easy-RSA CA]:projectman.my.id
+
+* Notice:
+
+CA creation complete and you may now import and sign cert requests.
+Your new CA certificate file for publishing is at:
+/usr/share/easy-rsa/pki/ca.crt
+```
+**Langkah 5: Membuat CA certificate untuk Server**
+```
+./easyrsa build-server-full server1 nopass
+
+* Notice:
+Using Easy-RSA configuration from: /usr/share/easy-rsa/pki/vars
+
+* Notice:
+Using SSL: openssl OpenSSL 3.0.11 19 Sep 2023 (Library: OpenSSL 3.0.11 19 Sep 2023)
+
+.....+....+...+.....+...+................+.....+.+.....+...+....+.....+......+......+.+...+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+.....+....+.....................+...+...+............+..+...+.+.........+........+....+........+......+....+..+....+.....+.......+..+......+.......+.........+...+.......................+....+.....+...+.+............+..+......+.......+...+.....+......+.+...+..+.........+.........+....+...+...+..+.........+....+......+...........+...+.+......+..+..........+...+...+.....................+......+..+..........+...+.....+...+.........+.+..+....+...+...........+...............+.+...+..+.+..............+....+......+.....+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.+.+...+...........+.+......+...+.....+......+....+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+...+...........+....+...+..+..........+...........+.+......+..+.+.....+....+.....+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+...........+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+* Notice:
+
+Keypair and certificate request completed. Your files are:
+req: /usr/share/easy-rsa/pki/reqs/server1.req
+key: /usr/share/easy-rsa/pki/private/server1.key
+
+
+You are about to sign the following certificate.
+Please check over the details shown below for accuracy. Note that this request
+has not been cryptographically verified. Please be sure it came from a trusted
+source or that you have verified the request checksum with the sender.
+
+Request subject, to be signed as a server certificate for 825 days:
+
+subject=
+    commonName                = server1
+
+
+Type the word 'yes' to continue, or any other input to abort.
+  Confirm request details: yes
+
+Using configuration from /usr/share/easy-rsa/pki/957ade41/temp.1fbdc4d7
+Enter pass phrase for /usr/share/easy-rsa/pki/private/ca.key:
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+commonName            :ASN.1 12:'server1'
+Certificate is to be certified until Feb 14 05:10:06 2026 GMT (825 days)
+
+Write out database with 1 new entries
+Database updated
+
+* Notice:
+Certificate created at: /usr/share/easy-rsa/pki/issued/server1.crt
+
+```
+**Langkah 6: Membuat Client Certificate**
+```
+./easyrsa build-client-full client1 nopass
+*** Notice:
+Using Easy-RSA configuration from: /usr/share/easy-rsa/pki/vars
+
+* Notice:
+Using SSL: openssl OpenSSL 3.0.11 19 Sep 2023 (Library: OpenSSL 3.0.11 19 Sep 2023)
+
+..+....+..............+............+...+.+...+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+..+.+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.................+......+.........+...+..+......+...+............+.......+..+................+.....+....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+...+......+...+...........+.+........................+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+............+..+...............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+............+.+..............+.+..+.............+.....+......+.........+.........+.+......+...+........+.........+......+.......+...+..+..........+............+......+..+.+.....+.........+......+.+......+...+......+...+...+..+...+....+...+...+........+......+...+.+...........+.........+............+....+........+............+.+..+...+...+....+..+...+...+.......+..+....+.................+.......+..................+..+............+.+...+.....+..........+...........+...+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+* Notice:
+
+Keypair and certificate request completed. Your files are:
+req: /usr/share/easy-rsa/pki/reqs/client1.req
+key: /usr/share/easy-rsa/pki/private/client1.key
+
+
+You are about to sign the following certificate.
+Please check over the details shown below for accuracy. Note that this request
+has not been cryptographically verified. Please be sure it came from a trusted
+source or that you have verified the request checksum with the sender.
+
+Request subject, to be signed as a client certificate for 825 days:
+
+subject=
+    commonName                = client1
+
+
+Type the word 'yes' to continue, or any other input to abort.
+  Confirm request details: yes
+
+Using configuration from /usr/share/easy-rsa/pki/993657cf/temp.3261277e
+Enter pass phrase for /usr/share/easy-rsa/pki/private/ca.key:
+Check that the request matches the signature
+Signature ok
+The Subject's Distinguished Name is as follows
+commonName            :ASN.1 12:'client1'
+Certificate is to be certified until Feb 14 05:12:07 2026 GMT (825 days)
+
+Write out database with 1 new entries
+Database updated
+
+* Notice:
+Certificate created at: /usr/share/easy-rsa/pki/issued/client1.crt
+**
+```
+**Langkah 7: Generate DH paramenter**
+```
+./easyrsa gen-dh
+
+* Notice:
+Using Easy-RSA configuration from: /usr/share/easy-rsa/pki/vars
+
+* Notice:
+Using SSL: openssl OpenSSL 3.0.11 19 Sep 2023 (Library: OpenSSL 3.0.11 19 Sep 2023)
+
+Generating DH parameters, 2048 bit long safe prime
+..........++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*++*
+
+* Notice:
+
+DH parameters of size 2048 created at /usr/share/easy-rsa/pki/dh.pem
+```
+**Langkah 8: Membuat TLS Auth Key**
+```
+openvpn --genkey secret ./pki/ta.key
+```
+**Langkah 9: Copy sample Config Openvpn**
+```
+cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/openvpn/server/
+```
+**Langkah 10: Copy Certificate yang digenerate ke Direktori utama Openvpn**
+```
+cp -pR /usr/share/easy-rsa/pki/{issued,private,ca.crt,dh.pem,ta.key} /etc/openvpn/server/
+```
+**Langkah 11: Buka Direktori utama Openvpn**
+```
+nano /etc/openvpn/server/server.conf
+```
+**Langkah 12: Ubahlah isinya seperti**
+```
+# line 32 :  Menggunakan Port default 1194
+port 1194
+# line 35 : menggunakan Protocol UDP
+;proto tcp
+proto udp
+# line 53 : ubah ke ke Tap 
+dev tap
+;dev tun
+
+# line 78 : Arahkan ke direktori spesifik dari Certificate tadi
+ca ca.crt
+cert issued/server1.crt
+key private/server1.key
+
+# line 85 : Aarahkan ke lokasi file dh.pem
+dh dh.pem
+
+# line 101 : Subnet yang digunakan VPN saya akan menyesuaikan topologi
+server 20.10.20.0 255.255.255.0
+
+# line 142 : Change Routing table ke network local(yang menuju VM3)
+push "route 10.10.10.0 255.255.255.0"
+
+# line 231 : Settingan keepalive 
+keepalive 10 120
+
+# line 244 : File Auth Key
+tls-auth ta.key 0
+
+# line 281 : aktifkan persistent
+persist-key
+persist-tun
+
+# line 306 : Log level ke 3 (0 - 9,artinya debug level)
+verb 3
+```
+**Langkah 13: Membuat script bridge.sh**
+```
+nano /etc/openvpn/server/add-bridge.sh
+```
+isi seperti ini
+```
+#!/bin/bash
+
+# network interface dari VPN
+IF=enp0s8
+# interface yang digunakan VPN tunnel
+VPNIF=tap0
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -A FORWARD -i ${VPNIF} -j ACCEPT
+iptables -t nat -A POSTROUTING -o ${IF} -j MASQUERADE
+```
+**Langkah 14: Membuat script remove bridge.sh**
+```
+nano /etc/openvpn/server/remove-bridge.sh
+
+#!/bin/bash
+# sama seperti sebelumnya
+IF=enp0s8
+# interface VPN
+VPNIF=tap0
+
+echo 0 > /proc/sys/net/ipv4/ip_forward
+iptables -D FORWARD -i  ${VPNIF} -j ACCEPT
+iptables -t nat -D POSTROUTING -o ${IF} -j MASQUERADE
+```
+**Langkah 15: Ubah hak akses file dengan chmod**
+```
+chmod 700 /etc/openvpn/server/{add-bridge.sh,remove-bridge.sh}
+```
+**Langkah 16: Tambahkan Script Tersebut ke Service Openvpn**
+```
+nano /lib/systemd/system/openvpn-server@.service
+
+# tambahkan ke section [service]
+[Service]
+.....
+.....
+ExecStartPost=/etc/openvpn/server/add-bridge.sh
+ExecStopPost=/etc/openvpn/server/remove-bridge.sh
+```
+**Langkah 17: Restart Layanan**
+```
+systemctl daemon-reload
+systemctl enable --now openvpn-server@server
+```
+
+**Langkah 18: Jika terjadi error seperti salah penempatan folder bisa gunakan command ini**
+```
+cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
 ```
 
 ### 5. DNS Server
@@ -1210,5 +1483,3 @@ root@VM2:/etc/bind# nslookup 192.168.20.2
 2.20.168.192.in-addr.arpa     name = projectman.my.id.
 ```
 
-**Coba disisi client**
-![debian](https://github.com/Xzhacts-Crew/ProjectMen/assets/114808262/3a4f306b-1ce7-40eb-94e0-a0baaf537955)
