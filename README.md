@@ -220,13 +220,13 @@ systemctl restart networking
 
 **7. Monitoring Server**
 
-### A. Web Server
+### 1. Web Server
 
-### B. Instalasi dan Konfigurasi Apache2
+### A. Instalasi dan Konfigurasi Apache2
 
-### C. Konfigurasi CMS Wordpress pada Apache2
+### B. Konfigurasi CMS Wordpress pada Apache2
 
-### D. Konfigurasi WAF(Web Application Firewall)
+### C. Konfigurasi WAF(Web Application Firewall)
 
 **Langkah 1: Instalasi Paket Modsecurity2**
 ```
@@ -324,7 +324,7 @@ systemctl restart apache2
 ```
 
 
-### E. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
+### D. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
 
 **Langkah 1: ke direktori a2site pada Apache2**
 ```
@@ -360,7 +360,7 @@ nano /etc/apache2/sites-available/000-default.conf
 ```
 konfigurasi ini akan memblokir akses ke dirktori yang paling penting yaitu "wp-config.php" netwrok VPN saja.
 
-### F. Instalasi SSL Certificate pada Web server(443 HTTPS)
+### E. Instalasi SSL Certificate pada Web server(443 HTTPS)
 
 SSL Certificate nya akan Menggunakan self-Singed SSL dari Openssl
 
@@ -529,13 +529,13 @@ root@VM2:~# systemctl restart apache2
 🔐 Enter passphrase for SSL/TLS keys for mail.projectman.my.id:443 (RSA): ****
 ```
 
-### G. Mail Server
+### 2. Mail Server
 
-### H. Instalasi dan Konfigurasi Postfix dan Dovecot
+### A. Instalasi dan Konfigurasi Postfix dan Dovecot
 
-### I. Konfigurasi Webmail Roundcube
+### B. Konfigurasi Webmail Roundcube
 
-### J. Mengamankan Roundcube secara Umum
+### C. Mengamankan Roundcube secara Umum
 Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
 yang direkomendasikan dari pihak roundcube
 
