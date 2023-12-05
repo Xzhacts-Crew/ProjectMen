@@ -1211,6 +1211,4 @@ root@VM2:/etc/bind# nslookup 192.168.20.2
 ```
 
 **Coba disisi client**
-![7](https://github.com/Quetzalcoatlos23/Final-Project-SPJ-22.83.0833/assets/114808262/3397034c-3aec-4ab5-a6a3-91b65c65a65a)
-
-
+![debian](https://github.com/Xzhacts-Crew/ProjectMen/assets/114808262/3a4f306b-1ce7-40eb-94e0-a0baaf537955)
