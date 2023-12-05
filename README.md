@@ -574,6 +574,214 @@ nano /etc/apache2/sites-available/roundcube.conf
 Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
 config/temp/logs sesuai rekomendasi roundcube
 
+### K. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
+**Langkah 1: Membuat Certificate TLS1.1 untuk SMTP 465**
+```
+openssl req -new -newkey rsa:2048 -nodes -keyout mail.projectman.my.id.key -out mail.projectman.my.id.csr
+openssl x509 -req -days 365 -in  mail.projectman.my.id.csr -signkey mail.projectman.my.id.key -out  mail.projectman.my.id.crt
+```
+**Langkah 2: Pastikan versinya**
+```
+root@VM2:/home/ssl# openssl x509 -in mail.projectman.my.id.crt -text -noout
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            3c:d9:6a:a5:1e:92:5c:d6:ac:8c:36:6e:c0:9b:18:48:4a:0d:bf:d2
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = IN, ST = Yogyakarta, L = Sleman, O = mail.projactman.my.id, OU = IT(Cyber Security), CN = mail.projectman.my.id, emailAddress = fenrir@mail.projectman.my.id
+        Validity
+            Not Before: Nov 12 18:19:15 2023 GMT
+            Not After : Nov 11 18:19:15 2024 GMT
+        Subject: C = IN, ST = Yogyakarta, L = Sleman, O = mail.projactman.my.id, OU = IT(Cyber Security), CN = mail.projectman.my.id, emailAddress = fenrir@mail.projectman.my.id
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:bb:85:d6:1d:0f:15:e7:5b:ac:55:85:bc:5e:70:
+                    b6:43:04:d3:3b:bc:57:e5:ad:91:ee:ba:60:30:e7:
+                    40:e7:ff:31:e8:fb:e1:31:f4:bb:db:41:48:c1:32:
+                    e6:f0:58:be:9b:90:07:6d:5f:34:93:3b:ea:8d:6d:
+                    9f:73:6a:80:35:38:1a:e1:3f:94:bf:63:81:3f:b3:
+                    a6:90:94:91:96:50:4b:54:e9:bb:ab:ec:f1:4f:35:
+                    4c:c2:78:e5:c2:3a:78:ee:19:92:0a:d0:4c:83:a6:
+                    c8:cd:25:b1:0b:d2:1d:1f:97:e0:91:9f:5d:0d:da:
+                    43:18:22:8d:6e:d3:4a:5d:fe:dd:a8:0f:25:a4:2e:
+                    ff:16:ca:0e:fe:9a:fa:0e:6a:da:43:00:dc:04:40:
+                    2e:2f:86:0f:f2:15:eb:35:a1:60:29:d5:97:04:79:
+                    c6:d7:1a:63:8d:e2:7e:98:d0:70:46:6e:c8:f9:ed:
+                    42:da:28:c6:a4:82:cd:65:ea:8f:73:39:3f:26:a9:
+                    79:e4:43:13:3f:5b:af:57:0b:fa:6d:f0:76:03:8d:
+                    67:bd:ce:c7:26:77:b4:bf:8f:5c:d5:e0:2a:30:39:
+                    2d:c7:89:ac:60:53:c0:15:6c:b7:9a:4d:16:55:37:
+                    b5:18:f5:65:84:00:52:07:38:f7:0d:80:46:4b:ec:
+                    17:27
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        10:8a:c6:83:29:fa:2c:83:52:4b:4c:69:00:e3:01:f5:c8:db:
+        37:7c:15:c4:f8:58:ce:45:b8:f6:f5:f3:c4:78:7e:04:67:da:
+        6b:03:b1:3f:a2:5f:75:87:22:31:fa:74:0c:27:58:e9:6b:f7:
+        a7:0e:30:fd:78:36:9f:75:98:80:fc:87:24:b4:f4:52:37:7d:
+        dd:31:7c:e3:00:c3:71:f9:fd:dd:f2:3c:86:8d:d7:17:d9:d9:
+        6d:03:8c:4c:a7:9a:4f:70:e0:2a:ac:b8:1f:36:ef:8a:1a:c9:
+        cc:56:f1:07:79:54:01:0b:b2:da:3f:46:86:49:4d:b5:d7:41:
+        c4:d9:28:e2:ca:27:99:a8:d6:90:be:03:23:9f:0c:9d:46:fc:
+        74:8d:3c:31:7d:cf:3f:0e:f4:b8:a9:8e:1f:dc:f9:4d:82:6b:
+        6a:6e:f0:40:3a:4a:d8:54:39:7d:c4:43:fc:4e:e5:a4:82:4a:
+        8f:f6:fd:f7:54:05:a3:10:c1:85:06:ba:0b:24:6a:e5:3e:82:
+        b2:1c:c0:f4:9d:2b:c5:d2:3e:2d:76:c5:52:c6:bc:20:85:14:
+        a7:b5:27:0e:89:8a:1d:cc:30:17:ee:bd:03:0d:00:f6:34:60:
+        95:fb:f6:7f:37:33:98:f4:93:09:02:1d:ce:c6:c0:18:ca:f8:
+        61:83:4f:be
+```
+**Langkah 3: Buka Direktori main.cf**
+```
+nano /etc/postfix/main.cf
+```
+**Langkah 4: Tambahkan di baris akhir**
+```
+inet_protocols = ipv4
+disable_vrfy_command = yes
+smtpd_helo_required = yes
+message_size_limit = 10240000
+
+smtpd_use_tls = yes
+smtpd_tls_cert_file = /home/ssl/mail.projectman.my.id.crt
+smtpd_tls_key_file = /home/ssl/mail.projectman.my.id.key
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtpd_tls_security_level=may
+```
+**Langkah 5: Buka File master.cf**
+```
+nano /etc/postfix/master.cf
+```
+**Langkah 6: Edit Konfigurasinya**
+```
+smtps     inet  n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submissions
+  -o smtpd_tls_wrappermode=yes
+  -o smtpd_sasl_auth_enable=yes
+```
+**Langkah 7: Konfigurasi Dovecot**
+```
+nano /etc/dovecot/conf.d/10-ssl.conf
+```
+**Langkah 8: Edit Konfigurasi**
+```
+# line 6 : ganti
+ssl = yes
+
+# line 12,13 : ganti ke direktori ssl certificate
+ssl_cert = </etc/ssl/certs/mail.projectman.my.crt
+ssl_key = </etc/ssl/private/mail.projectman.my.id.key
+```
+ini masih menggunakan Certificate SSL yang versi sebelumnya yaitu 1.3(yang digunakan untuk HTTPS)
+jadi yang menggunakan TLS 1.1 hanya SMTP saja
+**Langkah 9: Buka file Konfigurasi utama Webmailroundcube**
+```
+nano /var/www/roundcube/config/config.inc.php
+```
+**Langkah 10: Sesuaikan Konfigurasinya**
+```
+// IMAP host chosen to perform the log-in.
+// See defaults.inc.php for the option description.
+$config['imap_host'] = 'ssl://mail.projectman.my.id:993';
+
+// SMTP server host (for sending mails).
+// See defaults.inc.php for the option description.
+$config['smtp_host'] = 'ssl://mail.projectman.my.id:465';
+$config['smtp_auth_type'] = 'PLAIN';
+// SMTP username (if required) if you use %u as the username Roundcube
+// will use the current username for login
+$config['smtp_user'] = '%u';
+
+// SMTP password (if required) if you use %p as the password Roundcube
+// will use the current user's password for login
+$config['smtp_pass'] = '%p';
+
+// provide an URL where a user can get support for this Roundcube installation
+// PLEASE DO NOT LINK TO THE ROUNDCUBE.NET WEBSITE HERE!
+$config['support_url'] = '';
+
+$config['imap_conn_options'] = array(
+    'ssl' => array(
+        'verify_peer' => false,
+        'allow_self_signed' => true,
+    ),
+);
+$config['smtp_conn_options'] = array(
+    'ssl' => array(
+        'verify_peer' => false,
+        'allow_self_signed' => true,
+    ),
+);
+```
+sesuaikan seperti ini
+
+**Langkah 11: Cek apakah SMTP bisa berjalan dengan SSL certificate TLS 1.1**
+```
+openssl s_client -connect mail.projectman.my.id:465
+```
+Hasilnya
+```
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 1587 bytes and written 407 bytes
+Verification error: self-signed certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 18 (self-signed certificate)
+---
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: A41B409BE7975113C514A26E55886073951B14801B5B5235351B9F8537074F0F
+    Session-ID-ctx:
+    Resumption PSK: 63AD4A6554D8E34D3E7867763A5422CF98236F77D8C2B0F138931EED56347517A8D4AB84A08ABA840322B05D8FBFA455
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+    0000 - c1 f1 aa 61 4c 07 bc bd-db fd e2 67 fb c3 2c d7   ...aL......g..,.
+    0010 - f9 0d d3 53 7c 5f c1 b3-5f f9 03 4b 4d dd 55 d5   ...S|_.._..KM.U.
+    0020 - ab 92 42 5e 96 52 c0 51-96 19 43 63 57 7d c0 61   ..B^.R.Q..CcW}.a
+    0030 - 22 e1 45 1c 6f 5e c8 8b-d7 e1 eb 5b 0d 08 6d 73   ".E.o^.....[..ms
+    0040 - 28 5a bd e4 58 c9 b1 d2-2c fc fd 5f 8c 2c 16 73   (Z..X...,.._.,.s
+    0050 - 0a b6 b8 da d0 df 05 a5-8b 03 1c bd 06 fa 90 8d   ................
+    0060 - 4d ff 70 17 aa 59 c0 44-7e 39 67 93 48 ba 96 53   M.p..Y.D~9g.H..S
+    0070 - 0b d4 ec 1d 64 75 7d e0-da 5f d6 cb 59 66 bf ed   ....du}.._..Yf..
+    0080 - f6 40 08 00 52 ee 01 12-a2 06 8e b5 1e c8 fe a7   .@..R...........
+    0090 - f2 63 6f 25 8a 88 ed 10-ef 91 e3 fb de 71 a6 1a   .co%.........q..
+    00a0 - e5 5e 6d e6 9f 64 7c 6f-df 93 4e 66 4d 70 fe 81   .^m..d|o..NfMp..
+    00b0 - b0 d6 64 bd 38 8f a4 60-9f 41 01 47 0f 7c 33 49   ..d.8..`.A.G.|3I
+    00c0 - 76 65 aa 71 e6 6c 93 fa-f9 8c ee 87 53 c6 c8 22   ve.q.l......S.."
+
+    Start Time: 1699814108
+    Timeout   : 7200 (sec)
+    Verify return code: 18 (self-signed certificate)
+    Extended master secret: no
+    Max Early Data: 0
+---
+read R BLOCK
+220 mail.projectman.my.id ESMTP
+```
+
+### L. Database Server
+
+### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+
 
 
 
