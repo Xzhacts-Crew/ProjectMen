@@ -1483,3 +1483,51 @@ root@VM2:/etc/bind# nslookup 192.168.20.2
 2.20.168.192.in-addr.arpa     name = projectman.my.id.
 ```
 
+### 6. Instalasi dan Konfigurasi Port Knocking(Knockd)
+
+**Langkah 1: Instalasi knockd**
+```
+apt-get install knockd
+```
+**Langkah 2: Buka File Konfigurasi utama Knockd**
+```
+nano /etc/knockd.conf
+```
+**Langkah 3:Edit Sequence Number seperti sekanrio**
+```
+[options]
+        logfile = /var/log/knockd.log
+
+[openSSH]
+        sequence    = 3200,7600,9900
+        seq_timeout = 5
+        command     = ufw allow from %IP% to any port 9029 comment 'Port Knocking Access'
+        tcpflags    = syn
+
+[closeSSH]
+        sequence    = 9900,7600,3200
+        seq_timeout = 5
+        command     = ufw delete allow from %IP% to any port 9029 comment 'Port Knocking Access'
+        tcpflags    = syn
+```
+**Langkah 4: Buka Konfigurasi untuk listen Interface nya**
+```
+nano /etc/default/knockd
+```
+**Langkah 5: Edit Konfigurasi listen interface knockd**
+```
+# control if we start knockd at init or not
+# 1 = start
+# anything else = don't start
+# PLEASE EDIT /etc/knockd.conf BEFORE ENABLING
+START_KNOCKD=1
+
+# command line options
+KNOCKD_OPTS="-i tap0"
+```
+**Langkah 6: Restart Layanan Knockd**
+```
+systemctl restart knockd
+systemctl enable knockd
+```
+
