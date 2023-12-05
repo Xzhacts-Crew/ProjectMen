@@ -324,3 +324,211 @@ systemctl restart apache2
 ```
 
 
+### E. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
+
+**Langkah 1: ke direktori a2site pada Apache2**
+```
+nano /etc/apache2/sites-available/000-default.conf
+```
+**Langkah 2: Edit Konfigurasi**
+```
+<VirtualHost *:80>
+    ServerAdmin fenrir@mail.projectman.my.id
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Directory "/var/www/html">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    <Files "wp-config.php">
+        <RequireAny>
+            Require ip 20.10.20.0/24
+            Require host projectman.my.id
+        </RequireAny>
+    </Files>
+
+
+    <IfModule mod_headers.c>
+        Header set X-XSS-Protection "1; mode=block"
+    </IfModule>
+</VirtualHost>
+```
+konfigurasi ini akan memblokir akses ke dirktori yang paling penting yaitu "wp-config.php" netwrok VPN saja.
+
+### F. Instalasi SSL Certificate pada Web server(443 HTTPS)
+
+SSL Certificate nya akan Menggunakan self-Singed SSL dari Openssl
+
+**Langkah 1: insall paket Openssl**
+```
+apt-get install openssl
+```
+**Langkah 2: Buat File .Key untuk certificate SSL nya**
+```
+openssl genpkey -algorithm RSA -out projectman.my.id.key -aes256
+
+buat juga untuk subdomain mail
+openssl genpkey -algorithm RSA -out mail.projectman.my.id.key -aes256
+```
+silahkan ikuti proses ini
+```
+.....+..+.......+...+...+.....+....+..+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+......+....+..+......+.........+....+..+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.+.....+......+...+......+..........+.....+....+..+......+...+.+...+...+............+.....+............+.........+....+............+.....+.+..+.+...........+.+..+...+.........+...+...+..........+.....+...+................+..............+....+...+...+...........+.........+.........+.+.........+...+..+..........+..+.+...............+..+.+..+.......+......+..+...+.+.........+..+....+...+.....+.+............+.....+............+...+...+............+...+....+......+.........+......+.....+....+...+..+............+................+..+.......+...........+...+.+...........+...+.........+.......+...............+...+......+.....................+.........+..+...+.+...+.....................+.....+....+......+..+............+................+......+...............+.....+......+....+...+...+..+...+....+......+..................+..+.........+.....................+...+......+.+........+.......+...+..+....+.....+......+.............+.........+.....+.+..+.......+...............+...........+.......+..............+...+.+......+...+........+....+.....+.............+..+.+...+......+.....+....+..+....+......+..+.......+...+......+...........+...+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+........+...+......+......+.+..................+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.....+.+..+...+......+....+..............+.+..+.........+.........+....+..+.+.....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+..+....+...+..+....+.....+..........+.....................+.....+...............+...+..............................+......+.+.....+.........+.+......+............+...+..+...+.........+.+.....+...+......+.+..+.+.........+.....+.....................+.+.....+...............+..........+...+...........+....+...+........+....+........+....+...+.....+.+......+......+..+..........+............+....................+...+......+.+...+......+..+............+.+..............+.+..+...+.+...+......+..+....+........+...............+...+...+.+...........+...+....+...+.....+...+......+.+...+....................+....+...+...............+..+......+.......+.....+.......+.....+.....................+......+.+...+.........+............+...+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+root@VM2:~/ssl# ls
+projectman.my.id.key
+```
+**Langkah 3: Membuat File Certificate(.crt) dari key tersebut**
+```
+openssl req -new -x509 -key projectman.my.id.co.id.key -out projectman.my.crt -days 365 -sha256
+
+buat juga untuk subdomain mail
+openssl req -new -x509 -key mail.projectman.my.id.key -out mail.projectman.my.crt -days 365 -sha256
+```
+ikuti langkah-langkah ini
+```
+.....+..+.......+...+...+.....+....+..+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+......+....+..+......+.........+....+..+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.+.....+......+...+......+..........+.....+....+..+......+...+.+...+...+............+.....+............+.........+....+............+.....+.+..+.+...........+.+..+...+.........+...+...+..........+.....+...+................+..............+....+...+...+...........+.........+.........+.+.........+...+..+..........+..+.+...............+..+.+..+.......+......+..+...+.+.........+..+....+...+.....+.+............+.....+............+...+...+............+...+....+......+.........+......+.....+....+...+..+............+................+..+.......+...........+...+.+...........+...+.........+.......+...............+...+......+.....................+.........+..+...+.+...+.....................+.....+....+......+..+............+................+......+...............+.....+......+....+...+...+..+...+....+......+..................+..+.........+.....................+...+......+.+........+.......+...+..+....+.....+......+.............+.........+.....+.+..+.......+...............+...........+.......+..............+...+.+......+...+........+....+.....+.............+..+.+...+......+.....+....+..+....+......+..+.......+...+......+...........+...+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+........+...+......+......+.+..................+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.....+.+..+...+......+....+..............+.+..+.........+.........+....+..+.+.....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+..+....+...+..+....+.....+..........+.....................+.....+...............+...+..............................+......+.+.....+.........+.+......+............+...+..+...+.........+.+.....+...+......+.+..+.+.........+.....+.....................+.+.....+...............+..........+...+...........+....+...+........+....+........+....+...+.....+.+......+......+..+..........+............+....................+...+......+.+...+......+..+............+.+..............+.+..+...+.+...+......+..+....+........+...............+...+...+.+...........+...+....+...+.....+...+......+.+...+....................+....+...+...............+..+......+.......+.....+.......+.....+.....................+......+.+...+.........+............+...+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+root@VM2:~/ssl# ls
+projectman.my.id.key
+root@VM2:~/ssl# openssl req -new -x509 -key projectman.my.id.key -out projectman.my.id.crt -days 365 -sha256
+Enter pass phrase for projectman.my.id.key:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:IN
+State or Province Name (full name) [Some-State]:Yogyakarta
+Locality Name (eg, city) []:Sleman
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:Projectman.my.id
+Organizational Unit Name (eg, section) []:IT(Cyber Security)
+Common Name (e.g. server FQDN or YOUR name) []:projectman.my.id
+Email Address []:fenrir@mail.projectman.my.id
+```
+**Langkah 4: Gabungkan menjadi 1 file(optional**
+```
+cat projectman.my.id.key projectman.my.id.crt > projectman.my.id.pem
+```
+**Langkah 5: copy file ke Direktori yang sesuai**
+```
+cp projectman.my.id.crt /etc/ssl/certs/
+cp projectman.my.id.key /etc/ssl/private/
+cp mail.projectman.my.id.key /etc/ssl/private/
+cp mail.projectman.my.crt /etc/ssl/certs/
+```
+**Langkah 6: Konfigurasi ke file .htaccess di Apache2
+```
+nano /etc/apache2/sites-available/000-default.conf
+```
+**Langkah 7: ubah isi filenya**
+```
+<VirtualHost *:80>
+    ServerName projectman.my.id
+
+    <If "%{REMOTE_ADDR} !~ m#^20\.10\.20\.#">
+        Redirect permanent / https://projectman.my.id/
+    </If>
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerAdmin fenrir@mail.projectman.my.id
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Directory "/var/www/html">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    <Files "wp-config.php">
+        <RequireAny>
+            Require ip 20.10.20.0/24
+            Require host projectman.my.id
+        </RequireAny>
+    </Files>
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/projectman.my.id.crt
+    SSLCertificateKeyFile /etc/ssl/private/projectman.my.id.key
+
+    <IfModule mod_headers.c>
+        Header set X-XSS-Protection "1; mode=block"
+    </IfModule>
+</VirtualHost>
+```
+**Langkah 8: Ubah juga .htaccess pada roundcube.conf**
+```
+nano /etc/apache2/sites-available/roundcube.conf
+```
+**Langkah 9: Ubahlah isinya**
+```
+<VirtualHost *:80>
+    ServerName mail.projectman.my.id
+
+    <If "%{REMOTE_ADDR} !~ m#^20\.10\.20\.#">
+        Redirect permanent / https://mail.projectman.my.id/
+    </If>
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerAdmin fenrir@projectman.my.id
+    DocumentRoot /var/www/roundcube/public_html
+    ServerName mail.projectman.my.id
+
+    <Directory "/var/www/roundcube/public_html">
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        RewriteEngine On
+        RewriteRule ^roundcube(.*)$ /var/www/roundcube/public_html/roundcube$1 [L]
+
+        <FilesMatch "^/(config|temp|logs)">
+            Deny from all
+        </FilesMatch>
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/roundcube_error.log
+    CustomLog ${APACHE_LOG_DIR}/roundcube_access.log combined
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/mail.projectman.my.crt
+    SSLCertificateKeyFile /etc/ssl/private/mail.projectman.my.id.key
+
+    <IfModule mod_headers.c>
+        Header set X-XSS-Protection "1; mode=block"
+    </IfModule>
+</VirtualHost>
+```
+**Langkah 10: Aktifkan Modul ssl**
+```
+a2enmod ssl
+a2enmod rewrite
+```
+**Langkah 11: Restart Layanan Apache2**
+```
+systemctl restart apache2
+```
+Jika ada notifikasi seperti ini berarti masukkkan key ssl anda
+```
+root@VM2:~# systemctl restart apache2
+🔐 Enter passphrase for SSL/TLS keys for mail.projectman.my.id:443 (RSA): ****
+```
+
+
+
+
