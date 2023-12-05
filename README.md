@@ -591,7 +591,7 @@ local_recipient_maps = unix:passwd.byname $alias_maps
 mynetworks_style = subnet
 
 # Baris 294 : Tambahkan Jaringan Lokalmu
-mynetworks = 127.0.0.0/8, 192.168.20.2/24
+mynetworks = 127.0.0.0/8, 192.168.20.0/24
 
 # Baris 416 : uncomment
 alias_maps = hash:/etc/aliases
