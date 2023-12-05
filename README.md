@@ -782,6 +782,92 @@ read R BLOCK
 
 ### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
+### N. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+
+**Langkah 1: Membuka direktori utama Mariadb**
+```
+nano /etc/mysql/mariadb.cnf
+```
+**Langkah 2: Mengedit Konfigurasi**
+```
+#
+# If the same option is defined multiple times, the last one will apply.
+#
+# One can use all long options that the program supports.
+# Run program with --help to get a list of available options and with
+# --print-defaults to see which it would actually understand and use.
+#
+# If you are new to MariaDB, check out https://mariadb.com/kb/en/basic-mariadb-articles/
+
+#
+# This group is read both by the client and the server
+# use it for options that affect everything
+#
+[client-server]
+# Port or socket location where to connect
+#port = 3306
+socket = /run/mysqld/mysqld.sock
+
+[mysqld]
+bind-address = 127.0.0.1
+port = 3306
+log-bin
+# Import all .cnf files from configuration directory
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mariadb.conf.d/
+```
+ini akan membuat database server hanya bisa diakses dari localhost
+
+**Langkah 3: Restart**
+```
+systemctl restart mysqld mariadb.service
+```
+
+**Langkah 4: Buka Konfigurasi .htmaccess phpmyadmin**
+```
+nano /etc/apache2/conf-available/phpmyadmin.conf
+```
+**Langkah 5: Edit Konfigurasi ini**
+```
+# phpMyAdmin default Apache configuration
+
+Alias /phpmyadmin /usr/share/phpmyadmin
+
+<Directory /usr/share/phpmyadmin>
+    Options SymLinksIfOwnerMatch
+    DirectoryIndex index.php
+
+    # limit libapache2-mod-php to files and directories necessary by pma
+    <IfModule mod_php7.c>
+        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
+        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
+    </IfModule>
+
+    # PHP 8+
+    <IfModule mod_php.c>
+        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
+        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
+    </IfModule>
+
+        Require ip 20.10.20.0/24
+</Directory>
+
+# Disallow web access to directories that don't need it
+<Directory /usr/share/phpmyadmin/templates>
+    Require all denied
+</Directory>
+<Directory /usr/share/phpmyadmin/libraries>
+    Require all denied
+</Directory>
+```
+**Langkah 6: Reload**
+```
+systemctl reload apache2
+```
+**Langkah 7: Block akses ke port 3306 dari luar**
+```
+ufw deny 3306
+```
 
 
 
