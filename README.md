@@ -778,7 +778,7 @@ read R BLOCK
 220 mail.projectman.my.id ESMTP
 ```
 
-### L. Database Server
+### 3. Database Server
 
 ### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
