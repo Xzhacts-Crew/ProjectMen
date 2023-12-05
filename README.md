@@ -166,3 +166,58 @@ or
 dpkg-reconfigure iptables-persistent
 ```
 
+## 2. Konfigurasi Server pada VM2
+
+### Konfigurasi Adapter Network VM2
+**Langkah 1: Buka Konfigurasi utama Networking**
+```
+nano /etc/network/interfaces
+```
+**Langkah 2: Edit konfigurasi interfaces**
+```
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network iterface
+#auto enp0s3
+#allow-hotplug enp0s3
+#iface enp0s3 inet dhcp
+
+auto enp0s8
+iface enp0s8 inet static
+ address 192.168.20.2
+ netmask 255.255.255.0
+post-up ip route add default via 192.168.20.1 dev enp0s8
+
+auto enp0s9
+iface enp0s9 inet static
+ address 10.10.10.1
+ netmask 255.255.255.0
+```
+**Langkah 3: Restart**
+```
+systemctl restart networking
+```
+
+### Apa saja yang diKonfiguras? ###
+**1. Web Server**
+
+**2. Mail Server**
+
+**3. Database Server**
+
+**4. VPN Server**
+
+**5. DNS Server**
+
+**6. Port Knocking**
+
+**7. Monitoring Server**
+
+
