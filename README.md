@@ -220,4 +220,107 @@ systemctl restart networking
 
 **7. Monitoring Server**
 
+### A. Web Server
+
+### B. Instalasi dan Konfigurasi Apache2
+
+### C. Konfigurasi CMS Wordpress pada Apache2
+
+### D. Konfigurasi WAF(Web Application Firewall)
+
+**Langkah 1: Instalasi Paket Modsecurity2**
+```
+apt install libapache2-mod-security2
+```
+**Langkah 2: Enable modul modsecurity2**
+```
+a2enmod security2
+```
+**Langkah 3: Restart Apache2**
+```
+systemctl restart apache2
+```
+**Langkah 4: Konfigurasi Modsecurity**
+```
+nano /etc/apache2/mods-enabled/security2.conf
+
+<IfModule security2_module>
+        # Default Debian dir for modsecurity's persistent data
+        SecDataDir /var/cache/modsecurity
+
+        # Include all the *.conf files in /etc/modsecurity.
+        # Keeping your local configuration in that directory
+        # will allow for an easy upgrade of THIS file and
+        # make your life easier
+        IncludeOptional /etc/modsecurity/*.conf
+
+        # Include OWASP ModSecurity CRS rules if installed
+        IncludeOptional /usr/share/modsecurity-crs/*.load
+</IfModule>
+```
+disini terlihat bahwa konfigurasinya terdapat kata "*.conf" yang berarti bahwa apache akan meninclude semua file tersebut yang ada di direktori /etc/modsecurity/
+maka dari itu kita harus rename file nya
+
+**Langkah 5: Rename File Konfigurasi utama**
+```
+mv /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecurity.conf
+```
+**Langkah 6: Masuk ke File Konfigurasi utama**
+```
+nano /etc/modsecurity/modsecurity.conf
+```
+**Langkah 7: Edit Konfigurasi ini**
+```
+#SecRuleEngine DetectionOnly(ganti ke on)
+
+SecRuleEngine On
+
+#SecAuditLogParts ABDEFHIJZ(ubah ke:)
+SecAuditLogParts ABCFHZ
+```
+agar tampilan log nya lebih simple dan mudah dibaca
+
+**Langkah 8: Restart Apache2**
+```
+systemctl restart apache2
+```
+**Langkah 9: Instalasi OWASP CoreRuleSet(CRS)**
+```
+wget https://github.com/coreruleset/coreruleset/archive/refs/tags/v3.3.5.tar.gz
+tar xvf v3.3.5.tar.gz
+```
+**Langkah 10: Membuat direktori untuk menyimpan CRS**
+```
+mkdir /etc/apache2/modsecurity-crs/
+```
+**Langkah 11: Pindahkan File CRS ke Direktori yang dibuat**
+```
+mv coreruleset-3.3.5/ /etc/apache2/modsecurity-crs/
+cd /etc/apache2/modsecurity-crs/coreruleset-3.3.5/
+```
+**Langkah 12: Ubah nama Example file Konfigurasinya**
+```
+mv crs-setup.conf.example crs-setup.conf
+```
+**Langkah 13: ke direktori security2.conf**
+```
+nano /etc/apache2/mods-enabled/security2.conf
+```
+**Langkah 14: Ganti CRS rules nya ke CRS yang baru tadi**
+```
+#IncludeOptional /usr/share/modsecurity-crs/*.load(Ubahlah line ini ke Konfigurasi dibawah ini)
+IncludeOptional /etc/apache2/modsecurity-crs/coreruleset-3.3.5/crs-setup.conf
+IncludeOptional /etc/apache2/modsecurity-crs/coreruleset-3.3.5/rules/*.conf
+```
+**Langkah 15: Test Konfigurasi Apache**
+```
+apache2ctl -t
+Syntax OK
+```
+jika Syntax OK maka lanjut dengan restart layanan
+**Langkah 16: Restart Layanan Apache2**
+```
+systemctl restart apache2
+```
+
 
