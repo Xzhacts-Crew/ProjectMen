@@ -205,7 +205,7 @@ iface enp0s9 inet static
 systemctl restart networking
 ```
 
-### Apa saja yang diKonfiguras? ###
+### Apa saja yang diKonfigurasi? ###
 **1. Web Server**
 
 **2. Mail Server**
@@ -528,6 +528,51 @@ Jika ada notifikasi seperti ini berarti masukkkan key ssl anda
 root@VM2:~# systemctl restart apache2
 🔐 Enter passphrase for SSL/TLS keys for mail.projectman.my.id:443 (RSA): ****
 ```
+
+### G. Mail Server
+
+### H. Instalasi dan Konfigurasi Postfix dan Dovecot
+
+### I. Konfigurasi Webmail Roundcube
+
+### J. Mengamankan Roundcube secara Umum
+Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
+yang direkomendasikan dari pihak roundcube
+
+**Langkah 1: Hapus Installer Roundcube**
+```
+rm -rf /var/www/roundcube/installer
+```
+**Langkah 2: Membuat .htmaccess dan Melakukan a2site hanya untuk direktori /public_html saja pada roundcube**
+```
+nano /etc/apache2/sites-available/roundcube.conf
+```
+**Langkah 3: Isi Konfigurasi seperti dibawah ini**
+```
+<VirtualHost *:80>
+    ServerAdmin fenrir@projectman.my.id
+    DocumentRoot /var/www/roundcube/public_html
+    ServerName mail.projectman.my.id
+
+    <Directory "/var/www/roundcube/public_html">
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        RewriteEngine On
+        RewriteRule ^roundcube(.*)$ /var/www/roundcube/public_html/roundcube$1 [L]
+
+        <FilesMatch "^/(config|temp|logs)">
+            Deny from all
+        </FilesMatch>
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/roundcube_error.log
+    CustomLog ${APACHE_LOG_DIR}/roundcube_access.log combined
+</VirtualHost>
+```
+Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
+config/temp/logs sesuai rekomendasi roundcube
 
 
 
