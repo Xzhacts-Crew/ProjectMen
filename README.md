@@ -718,9 +718,9 @@ nano /etc/dovecot/conf.d/10-master.conf
 systemctl restart dovecot
 ```
 
-### B. Konfigurasi Webmail Roundcube
+### C. Konfigurasi Webmail Roundcube
 
-### C. Mengamankan Roundcube secara Umum
+### D. Mengamankan Roundcube secara Umum
 
 Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
 yang direkomendasikan dari pihak roundcube
@@ -760,7 +760,7 @@ nano /etc/apache2/sites-available/roundcube.conf
 Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
 config/temp/logs sesuai rekomendasi roundcube
 
-### K. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
+### E. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
 **Langkah 1: Membuat Certificate TLS1.1 untuk SMTP 465**
 ```
 openssl req -new -newkey rsa:2048 -nodes -keyout mail.projectman.my.id.key -out mail.projectman.my.id.csr
@@ -966,10 +966,10 @@ read R BLOCK
 
 ### 3. Database Server
 
-### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+### A. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
 
-### N. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+### B. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
 
 **Langkah 1: Membuka direktori utama Mariadb**
 ```
@@ -1058,6 +1058,7 @@ ufw deny 3306
 
 ### 4. Instalasi dan Konfigurasi OPENVPN
 
+### A. Instalasi OpenVPN dan Konfigurasi
 **Langkah 1: Instalasi paket Openvpn & iptables**
 ```
 apt-get install -y openvpn easy-rsa iptables
@@ -1484,6 +1485,9 @@ root@VM2:/etc/bind# nslookup 192.168.20.2
 ```
 
 ### 6. Instalasi dan Konfigurasi Port Knocking(Knockd)
+
+
+### A. Instalasi Kncokd
 
 **Langkah 1: Instalasi knockd**
 ```
