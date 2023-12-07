@@ -1535,3 +1535,112 @@ systemctl restart knockd
 systemctl enable knockd
 ```
 
+
+### 7. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
+
+**Langkah 1: Instalasi Paket-Paket Yang diperlukan**
+```
+wget -q -O /usr/share/keyrings/grafana.key https://packages.grafana.com/gpg.key
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://packages.grafana.com/oss/deb stable main" | tee -a /etc/apt/sources.list.d/grafana.list
+apt-get update
+apt-get install loki
+apt-get install promtail
+apt-get install rsyslog
+apt-get install grafana
+apt-get install acl
+```
+**Langkah 2: berikan akses ke direktori /var/log/*" kepada user Promtail**
+```
+setfacl -R -m u:promtail:rX /var/log
+```
+**Langkah 3: Buka Konfigurasi Utama Promtail**
+```
+nano /etc/promtail/config.yml
+```
+**Langkah 4: Tambahkan Job Monitoring**
+```
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+- job_name: system
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: varlogs
+      __path__: /var/log/*log
+```
+Pada bagian job_name bisa anda tambahkan ke direktori yang anda ingin kan, misal direktori /var/www/html/error.log. itu bisa ditambahkan sebagai target log yang akan dicapture dan di export oleh Promtail
+
+**Langkah 5: Ke Konfigurasi utama Loki**
+```
+nano /etc/loki/config.yml
+```
+**Langkah 6: Ubah Sesuai Kebutuhan**
+```
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /tmp/loki
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+# By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
+# analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
+#
+# Statistics help us better understand how Loki is used, and they show us performance
+# levels for most users. This helps us prioritize features and documentation.
+# For more information on what's sent, look at
+# https://github.com/grafana/loki/blob/main/pkg/usagestats/stats.go
+# Refer to the buildReport method to see what goes into a report.
+#
+# If you would like to disable reporting, uncomment the following lines:
+#analytics:
+#  reporting_enabled: false
+```
+anda bisa mengganti port atau path penyimpanan log dari Loki
+
+**Langkah 7: Buka halaman http://Domain atau IP anda:3100/metrics**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/ab856e8f-4235-443b-be0b-c6f3a32014a5)
+
+
+
