@@ -1538,6 +1538,8 @@ systemctl enable knockd
 
 ### 7. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
 
+### A. Instalasi Loki& Promtail
+
 **Langkah 1: Instalasi Paket-Paket Yang diperlukan**
 ```
 wget -q -O /usr/share/keyrings/grafana.key https://packages.grafana.com/gpg.key
@@ -1641,6 +1643,85 @@ anda bisa mengganti port atau path penyimpanan log dari Loki
 
 **Langkah 7: Buka halaman http://Domain atau IP anda:3100/metrics**
 ![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/ab856e8f-4235-443b-be0b-c6f3a32014a5)
+
+### B. Visualisasi Log Ke Grafana
+
+**Langkah 1: Enable Grafana**
+```
+systemctl enable grafana-server
+systemctl start grafana-server
+```
+**Langkah 2: Buka Konfigurasi Utama Grafana**
+```
+nano /etc/grafana/grafana.ini
+```
+**Langkah 3: Edit Konfigurasi**
+```
+#Hilangkan tanda ";"
+[server]
+# Protocol (http, https, h2, socket)
+protocol = http
+
+# This is the minimum TLS version allowed. By default, this value is empty. Accepted values are: TLS1.2, TLS1.3. If nothing is set TLS1.2 would be taken
+;min_tls_version = ""
+
+# The ip address to bind to, empty will bind to all interfaces
+;http_addr =
+
+# The http port  to use
+http_port = 3000
+
+# The public facing domain name used to access grafana from a browser
+domain = localhost
+```
+**Langkah 4: Restart Grafana**
+```
+systemctl restart grafana-server
+```
+**Langkah 5: Login ke Grafana**
+
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/1ae7d71c-17b4-4e5e-ae23-6070ee4485d3)
+Login = "admin password="admin"
+
+**Langkah 6: Add Data Source**
+
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/92aff166-f66d-443d-b958-cf36bda9e2ac)
+'Home > Connection > Data Source
+
+**Langkah 7: Search Loki**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/4202a014-48da-4504-b090-a50f4532f102)
+
+**Langkah 8: Tambahkan URL dimana Loki Berjalan**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/acf063e9-30f6-4fe9-8454-5e808825e564)
+
+
+**Langkah 8: Membuat Dashboard baru**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/fcacae1f-41cd-4adc-90cd-8cf824ea285c)
+
+
+**Langkah 9: Pilih Data Source Loki**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/715b9a54-4290-4e9b-b3d2-4ed121646d25)
+
+
+Kemudian pada bagian Label Filters : Pilih "job/filename" kemudian pilih "varlogs"
+
+**Langkah 10: Klik Visualisation dan pilih Logs**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/26726a9e-0801-4499-aecf-2c9ec9a4a266)
+kemudian klik "run Query"
+
+**Langkah 11:Klik Apply dan save untuk Membuat Dashboard**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/1d2db53e-7ab4-4fe5-a67f-f09f8e4516e2)
+
+
+ Sekarang Muncul sebuah Tampilan Log,dimana anda bisa explore dan membuat dashboard Log anda sendiri
+
+**Langkah 12: ini Dashoard Dari Monitoring Logs nya**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/64aa9451-7c2c-4eda-a60e-fa76658f4901)
+
+
+
+
+
 
 
 
