@@ -48,6 +48,7 @@ Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tig
 Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengimplementasikan praktik keamanan yang canggih seperti honeypot, port knocking, VPN, dan konfigurasi otomatis backup. Seluruh konfigurasi akan didokumentasikan dengan baik di dalam repositori ini untuk memudahkan pengelolaan dan pemeliharaan sistem keamanan.
 
 **Konfigurasi pada Setiap VM**
+
  [VM1](#1-Konfigurasi-Honeypot-pada-VM1)
  
  [VM2](#2-Konfigurasi-Server-pada-VM2)
