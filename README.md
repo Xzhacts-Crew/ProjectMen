@@ -49,7 +49,9 @@ Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengim
 
 **Konfigurasi pada Setiap VM**
  [VM1](#1-Konfigurasi-Honeypot-pada-VM1)
+ 
  [VM2](#2-Konfigurasi-Server-pada-VM2)
+ 
  [VM3](#VM3)
 
 ## 1. Konfigurasi Honeypot pada VM1
@@ -1717,6 +1719,130 @@ kemudian klik "run Query"
 
 **Langkah 12: ini Dashoard Dari Monitoring Logs nya**
 ![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/64aa9451-7c2c-4eda-a60e-fa76658f4901)
+
+### C. Mengamankan Grafana dengan UFW dan SSL Cerfificate
+
+**Langkah 1: Membuat Self Singed Certificate**
+```
+openssl genpkey -algorithm RSA -out server.key
+```
+**Langkah 2: Membuat CSR**
+```
+openssl req -new -key server.key -out server.csr
+```
+**Langkah 3: Membuat CA Certificate**
+```
+openssl x509 -req -in server.csr -signkey server.key -out server.crt -days 365
+```
+**Langkah 4: Ubah Pemilik dan Hak Akses Certificate nya**
+```
+chown grafana:grafana server.crt
+chown grafana:grafana server.key
+chmod 776 server.key server.crt
+```
+**Langkah 5: Pindahkan file nya**
+```
+mv server.key server.crt /etc/grafana/
+```
+**Langkah 7: Buka Direktori Konfigurasi Grafana**
+```
+nano /etc/grafana/grafana.ini
+```
+**Langkah 8: Edit Konfigurasinya**
+```
+[server]
+# Protocol (http, https, h2, socket)
+protocol = https
+
+# This is the minimum TLS version allowed. By default, this value is empty. Accepted values are: TLS1.2, TLS1.3. If nothing is set TLS1.2 would be taken
+;min_tls_version = ""
+
+# The ip address to bind to, empty will bind to all interfaces
+http_addr = 20.10.20.1
+
+# The http port  to use
+http_port = 3000
+
+# The public facing domain name used to access grafana from a browser
+domain = localhost
+
+# Redirect to correct domain if host header does not match domain
+# Prevents DNS rebinding attacks
+;enforce_domain = false
+
+# The full public facing url you use in browser, used for redirects and emails
+# If you use reverse proxy and sub path specify full url (with sub path)
+;root_url = %(protocol)s://%(domain)s:%(http_port)s/
+
+# Serve Grafana from subpath specified in `root_url` setting. By default it is set to `false` for compatibility reasons.
+;serve_from_sub_path = false
+
+# Log web requests
+;router_logging = false
+
+# the path relative working path
+;static_root_path = public
+
+# enable gzip
+;enable_gzip = false
+
+# https certs & key file
+cert_file = /etc/grafana/server.crt
+cert_key = /etc/grafana/server.key
+```
+**Langkah 8: (Optional)Cek  Versi TLS/TLS**
+```
+openssl rsa -in server.key -text -noout
+openssl rsa -in crt.key -text -noout
+
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            30:9b:3f:96:b3:7d:91:ed:7f:75:ba:92:65:b5:5a:80:81:ea:31:2a
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = IN, ST = yogyakarta, L = Sleman, O = Projectman, OU = IT(Cyber Security), CN = 20.10.20.1, emailAddress = fenrir@mail.projectman.my.id
+        Validity
+            Not Before: Nov 13 09:42:14 2023 GMT
+            Not After : Nov 12 09:42:14 2024 GMT
+        Subject: C = IN, ST = yogyakarta, L = Sleman, O = Projectman, OU = IT(Cyber Security), CN = 20.10.20.1, emailAddress = fenrir@mail.projectman.my.id
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:cb:dd:c4:62:c9:70:5f:b6:80:75:ba:87:b3:73:
+                    44:b1:f4:71:c4:23:89:ce:34:51:e5:06:b1:ac:ec:
+                    48:1b:ff:19:3f:47:0a:a1:90:8f:1b:e4:c7:c5:32:
+                    02:80:05:7a:c0:e6:2d:e0:d7:39:1c:6d:db:23:c6:
+                    53:22:9d:b1:04:0d:a1:fd:da:25:d8:8f:19:86:9e:
+                    d5:93:9d:97:77:20:f6:f6:98:42:bd:52:fb:1d:68:
+                    e0:c0:ae:d3:54:a9:a7:a3:9b:47:4e:8f:38:2f:d2:
+                    63:dc:ad:80:ed:d1:22:32:83:c5:df:c6:01:13:88:
+                    18:d9:ee:5c:25:fd:ed:45:fc:9d:24:34:ac:06:5c:
+                    66:cf:3f:b6:60:e7:7d:95:d9:1e:33:4d:9d:36:9e:
+                    49:4f:bc:41:aa:ef:08:67:b8:a0:4a:29:bb:95:51:
+                    86:c0:eb:04:5e:62:a4:74:f1:53:ba:17:6c:03:2f:
+                    f0:91:32:ed:4c:e3:a7:da:55:ae:9f:03:f0:f8:04:
+                    00:04:b7:ee:93:02:44:1e:3a:53:e0:36:d8:64:6a:
+                    da:0f:76:b0:07:d1:5e:c1:f9:31:a1:bb:15:9a:9b:
+                    0d:39:e0:13:f0:41:a9:57:3a:72:87:6c:0d:52:e1:
+                    8d:ea:c5:87:81:3a:8b:72:1e:75:58:e2:19:ce:e7:
+                    ea:35
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha256WithRSAEncryption
+```
+**Langkah 9: Cek halaman Homepage Grafana**
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/9ee0c03b-708f-489f-b33a-514433d994b9)
+
+
+**Langkah 10: Mengamankan Grafana dan Metrics dari Promtail dengan ufw**
+```
+ufw allow from 20.10.20.0/24 to any port 3000
+ufw allow from 20.10.20.0/24 to any port 3100
+ufw reload
+```
+jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
+
 
 
 
