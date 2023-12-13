@@ -1845,7 +1845,7 @@ ufw reload
 jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 
-## 3.Konfigurasi Server Backup VM3
+## 3. Konfigurasi Server Backup VM3
 
 ### A. Konfigurasi Adapter Network VM3
 
