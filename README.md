@@ -1845,6 +1845,39 @@ ufw reload
 jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 
+### 3 Konfigurasi Server Backup VM3
+
+### A. Konfigurasi Adapter Network VM3
+
+**Langkah 1: Buka Direktori utama interfaces**
+```
+nano /etc/network/interfaces
+```
+**Langkah 2: Edit Konfigurasi nya**
+```
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network iterface
+#auto enp0s3
+#allow-hotplug enp0s3
+#iface enp0s3 inet dhcp
+
+auto enp0s3
+iface enp0s3 inet static
+ address 10.10.10.2
+ netmask 255.255.255.0
+```
+**Langkah 3: Restart Networking**
+```
+systemctl restart networking
+```
 
 
 
