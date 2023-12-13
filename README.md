@@ -49,11 +49,11 @@ Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengim
 
 **Konfigurasi pada Setiap VM**
 
- [VM1](#1-Konfigurasi-Honeypot-pada-VM1)
+ [1.VM1](#1-Konfigurasi-Honeypot-pada-VM1)
  
- [VM2](#2-Konfigurasi-Server-pada-VM2)
+ [2.VM2](#2-Konfigurasi-Server-pada-VM2)
  
- [VM3](#3-Konfigurasi-Server-pada-VM3)
+ [3.VM3](#3-Konfigurasi-Server-pada-VM3)
 
 ## 1. Konfigurasi Honeypot pada VM1
 
@@ -1845,7 +1845,7 @@ ufw reload
 jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 
-### 3 Konfigurasi Server Backup VM3
+## 3.Konfigurasi Server Backup VM3
 
 ### A. Konfigurasi Adapter Network VM3
 
