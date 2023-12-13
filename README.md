@@ -1880,6 +1880,282 @@ systemctl restart networking
 ```
 
 
+### B. Instalasi Rsync
+
+**Langkah 1: Instalasi paket Rsync dan Mariadb-Client& cron di server utama(10.10.10.1)**
+```
+apt install rsync mariadb-client cron
+```
+**Langkah 2: instalasi Rsync di Server backup(10.10.10.2)**
+```
+apt install rsync
+```
+**Langkah 3: Membuat Script Backup Sqldump di Server utama(10.10.10.1)**
+```
+mkdir /home/mysql_backup
+cd /home/mysql_backup
+touch backup.sh
+nano backup.sh
+```
+**Langkah 4: isi Script backup(10.10.10.1)**
+```
+#!/bin/bash
+
+# Nama File Backup
+BACKUP_FILE="mysql_backup_$(date +%Y%m%d%H%M%S).sql"
+
+# Eksekusi mysqldump
+mysqldump -u root -h localhost -p1 --all-databases > /tmp/$BACKUP_FILE
+
+# Compression (opsional)
+gzip /tmp/$BACKUP_FILE
+
+# Konfigurasi rsync pada server utama
+SOURCE_DIR="/tmp"
+DESTINATION_DIR="10.10.10.2::backup_module"
+
+# Eksekusi rsync tanpa opsi --delete
+rsync -avz $SOURCE_DIR/$BACKUP_FILE.gz $DESTINATION_DIR
+
+# Hapus file dump sementara
+rm /tmp/$BACKUP_FILE.gz
+```
+
+**Langkah 5: Membuat Script untuk sinkornisasi Direktori Konfigurasi di Server Utama dan Server Backup**
+```
+touch sync.sh
+nano sync.sh
+```
+**Langkah 6: Isi Script Sync(10.10.10.1)**
+```
+#!/bin/bash
+
+# Fungsi untuk menyinkronkan modul rsync
+sync_module() {
+    SOURCE_DIR=$1
+    MODULE_NAME=$2
+
+    # Backup direktori ke file tar di /tmp dengan nama yang mencakup nama modul
+    BACKUP_FILE="/tmp/backup_$(date +%Y%m%d%H%M%S).tar.gz"
+    tar -czf $BACKUP_FILE $SOURCE_DIR
+
+    # Synchronize backup file ke modul rsync
+    rsync -avz $BACKUP_FILE $MODULE_NAME
+
+
+    rm $BACKUP_FILE
+}
+
+
+sync_module "/var/www/" "10.10.10.2::module_sync_var_www"
+
+
+sync_module "/etc/postfix/" "10.10.10.2::module_sync_etc_postfix"
+
+
+sync_module "/etc/apache2/" "10.10.10.2::module_sync_etc_apache2"
+
+
+sync_module "/etc/openvpn/" "10.10.10.2::module_sync_etc_openvpn"
+
+
+sync_module "/etc/grafana/" "10.10.10.2::module_sync_etc_grafana"
+
+
+sync_module "/etc/loki/" "10.10.10.2::module_sync_etc_loki"
+
+
+sync_module "/etc/promtail/" "10.10.10.2::module_sync_etc_promtail"
+
+
+sync_module "/etc/dovecot/" "10.10.10.2::module_sync_etc_dovecot"
+
+
+```
+
+**Langkah 7: beri akses untuk eksekusi**
+```
+chmod +x backup.sh
+chmod +x sync.sh
+```
+**Langkah 8: membuat File Module Backup untuk Menerima dan Mengarahkan File bakcup ke direktori yang sesuai di Server Backup(10.10.10.2)**
+```
+mkdir /home/mysql_backup
+mkdir /home/backup
+#ini isi subfolder dari /home/backup/
+mkdir www_backup
+mkdir postfix_backup
+mkdir apache2_backup
+mkdir openvpn_backup
+mkdir grafana_backup
+mkdir loki_backup
+mkdir promtail_backup
+mkdir dovecot_backup
+```
+**Langkah 9: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
+```
+chmod 1777 /home/mysql_backup
+chmod -R 1777 /home/backup/
+```
+**Langkah 10: Edit Konfigurasi Utama Rsync(10.10.10.2)**
+```
+uid = nobody
+gid = nogroup
+use chroot = yes
+max connections = 4
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+
+[backup_module]
+    path = /home/mysql_backup/
+    comment = Rsync Backup
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_var_www]
+    path = /home/backup/www_backup/
+    comment = Rsync Sync /var/www
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_postfix]
+    path = /home/backup/postfix_backup/
+    comment = Rsync Sync /etc/postfix
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_apache2]
+    path = /home/backup/apache2_backup/
+    comment = Rsync Sync /etc/apache2
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_openvpn]
+    path = /home/backup/openvpn_backup/
+    comment = Rsync Sync /etc/openvpn
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_grafana]
+    path = /home/backup/grafana_backup/
+    comment = Rsync Sync /etc/grafana
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_loki]
+    path = /home/backup/loki_backup/
+    comment = Rsync Sync /etc/loki
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+
+[module_sync_etc_promtail]
+    path = /home/backup/promtail_backup/
+    comment = Rsync Sync /etc/promtail
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_dovecot]
+    path = /home/backup/dovecot_backup/
+    comment = Rsync Sync /etc/dovecot
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+```
+**Langkah 11: Restart**
+```
+systemctl enable rsync
+systemctl restart rsync
+```
+
+**Langkah 12: Script untuk file/log rotate(10.10.10.2)**
+```
+nano backup_rotate.sh
+```
+jadi saya akan membuat script yang bisa menghapus file backup yang sudah berumur lebih dari 7 hari(7+)
+
+**Langkah 13: isi script**
+```
+#!/bin/bash
+
+BACKUP_DIRS=(
+    "/home/mysql_backup/"
+    "/home/backup/www_backup/"
+    "/home/backup/postfix_backup/"
+    "/home/backup/apache2_backup/"
+    "/home/backup/openvpn_backup/"
+    "/home/backup/grafana_backup/"
+    "/home/backup/loki_backup/"
+    "/home/backup/promtail_backup/"
+)
+
+for dir in "${BACKUP_DIRS[@]}"; do
+    find $dir -type f -mtime +7 -exec rm {} \;
+done
+
+systemctl restart rsync
+```
+
+### 4.2 Menjadwalkan Script Backup secara Rutin(Crontab)
+
+**Langkah 1: Buka Direktori Utama Crontab(10.10.10.1)**
+```
+crontab -e
+```
+**Langkah 2: Jadwalkan Sesuai keinginan(10.10.10.1)**
+
+Format penjadwalan cron adalah sebagai berikut:
+
+Menit (0 - 59)
+
+Jam (0 - 23)
+
+Hari dalam bulan (1 - 31)
+
+Bulan (1 - 12)
+
+Hari dalam minggu (0 - 6, 0 adalah Minggu)
+
+
+(disini jadwal nya 3 hari sekali setiap jam 2 pagi)
+```
+0 2 */3 * * /home/backup/backup.sh
+0 2 */3 * * /home/backup/sync.sh
+```
+
+**Langkah 3: Verifikasi Job cron(10.10.10.1)**
+```
+crontab -l
+```
+
+**Langkah 4: direktori crontab di VM3(10.10.10.2)**
+```
+crobtab -e
+```
+**Langkah 5: edit direktori crontab(10.10.10.2)**
+```
+0 2 * * 0 /home/backup/backup_rotate.sh
+```
+jadi script akan terjadwalkan setiap seminggu sekali yang,akan menghapus file backup yang sudah berumur lebih dari 7+ hari
+
+**Langkah 6: Apply script(10.10.10.2)**
+```
+crontab -l
+```
+
+
+
+
 
 
 
