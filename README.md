@@ -53,7 +53,7 @@ Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengim
  
  [VM2](#2-Konfigurasi-Server-pada-VM2)
  
- [VM3](#VM3)
+ [VM3](#3-Konfigurasi-Server-pada-VM3)
 
 ## 1. Konfigurasi Honeypot pada VM1
 
