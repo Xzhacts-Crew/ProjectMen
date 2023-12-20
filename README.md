@@ -1045,7 +1045,7 @@ installation should now be secure.
 
 Thanks for using MariaDB!
 ```
-Bagian "Disallow root login remotely" bisa diatur seusia keperluan,karena disitu saya perlu login dengan root account.
+Bagian "Disallow root login remotely" bisa diatur sesuai keperluan,karena pada bagian perlu itu login dengan root account.
 
 ## Instalasi dan Konfigurasi Phpmyadmin
 **Langkah 1: Lakukan instalasi paket**
