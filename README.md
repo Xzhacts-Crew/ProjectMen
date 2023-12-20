@@ -1055,6 +1055,7 @@ apt-get install phpmyadmin
 **Langkah 2: Konfigurasi Phpmyadmin**
 Bisa langsung Konfigurasi otomatis agar bisa ditampilkan ke Web Server anda
 ![01](https://github.com/Xzhacts-Crew/ProjectMen/assets/148263594/b47f0218-35c4-4ec5-9f40-318bc205eb0c)
+
 atau bisa Menggunakan Command Line
 ```
 ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
@@ -1063,6 +1064,7 @@ systemctl reload apache2
 ```
 ## Menguji Konfigurasi
 berhasil dibuka melalui Webserver Apache2
+
 ![02](https://github.com/Xzhacts-Crew/ProjectMen/assets/148263594/b605cab2-ea0a-47aa-87f4-db1d6b3f9ffc)
 
 ### B. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
