@@ -3,13 +3,13 @@
 
 ANGGOTA KELOMPOK:
 
-MUHAMMAD NUR HAQIQI - 22.83.0886 TK-02(Ketua) - System Security Administrator(Fenrir717)
+MUHAMMAD NUR HAQIQI - 22.83.0886 TK-02(Ketua) - System Security Administrator (Fenrir717)
 
-Georel Jeferson Fransiskus Bonai - 22.83.0833(Anggota 1) - Mail Server Administrator(Quetzalcoatlos23)
+Georel Jeferson Fransiskus Bonai - 22.83.0833(Anggota 1) - Mail Server Administrator (Quetzalcoatlos23)
 
 Muhammad Akbar Firmansyah - 22.83.0870(Anggota 2) -  CMS Wordpress Configurator
 
-Muhammad Fadhil Mundzir Sakaria - 22.83.0829(Anggota 3) - Database Administrator(A4VA4TA4R)
+Muhammad Fadhil Mundzir Sakaria - 22.83.0829(Anggota 3) - Database Administrator (A4VA4TA4R)
 
 Willy Agustianus - 22.83.0882(Anggota 4) - Roundcube Webmail Configurator
 
